@@ -1,0 +1,57 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+# Load the image
+img = cv2.imread('image.jpg', cv2.IMREAD_GRAYSCALE)
+
+# Perform Fourier transform
+f_transform = np.fft.fft2(img)
+f_transform_shifted = np.fft.fftshift(f_transform)
+magnitude_spectrum = 20 * np.log(np.abs(f_transform_shifted))
+
+# Additional Effects
+
+# High Pass Filtering (Emphasize edges)
+f_transform_highpass = f_transform_shifted.copy()
+rows, cols = img.shape
+crow, ccol = rows // 2, cols // 2
+f_transform_highpass[crow - 20:crow + 20, ccol - 20:ccol + 20] = 0
+highpass_image = np.fft.ifftshift(f_transform_highpass)
+highpass_image = np.fft.ifft2(highpass_image)
+highpass_image = np.abs(highpass_image)
+
+# Band Pass Filtering (Emphasize specific frequencies)
+f_transform_bandpass = f_transform_shifted.copy()
+f_transform_bandpass[:crow - 20, :] = 0
+f_transform_bandpass[crow + 20:, :] = 0
+f_transform_bandpass[:, :ccol - 20] = 0
+f_transform_bandpass[:, ccol + 20:] = 0
+bandpass_image = np.fft.ifftshift(f_transform_bandpass)
+bandpass_image = np.fft.ifft2(bandpass_image)
+bandpass_image = np.abs(bandpass_image)
+
+# Phase Shifting (Rotate the image)
+f_transform_phase_shifted = np.fft.fft2(np.roll(img, shift=(30, 30), axis=(0, 1)))
+phase_shifted_image = np.fft.ifft2(f_transform_phase_shifted)
+phase_shifted_image = np.abs(phase_shifted_image)
+
+# Display original and processed images
+plt.figure(figsize=(12, 8))
+
+plt.subplot(231), plt.imshow(img, cmap='gray')
+plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(232), plt.imshow(magnitude_spectrum, cmap='gray')
+plt.title('Fourier Transform'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(233), plt.imshow(highpass_image, cmap='gray')
+plt.title('High Pass Filtering'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(234), plt.imshow(bandpass_image, cmap='gray')
+plt.title('Band Pass Filtering'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(235), plt.imshow(phase_shifted_image, cmap='gray')
+plt.title('Phase Shifting'), plt.xticks([]), plt.yticks([])
+
+plt.show()
