@@ -1,0 +1,61 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+# Load the image
+img = cv2.imread('image.jpg', cv2.IMREAD_GRAYSCALE)
+
+# Reason 1: Frequency Analysis
+f_transform = np.fft.fft2(img)
+f_transform_shifted = np.fft.fftshift(f_transform)
+magnitude_spectrum = 20 * np.log(np.abs(f_transform_shifted))
+
+# Reason 2: Feature Extraction
+feature_extraction = np.abs(f_transform_shifted)
+
+# Reason 3: Noise Filtering (Removing High Frequencies)
+f_transform_shifted_filtered = f_transform_shifted.copy()
+rows, cols = img.shape
+crow, ccol = rows // 2, cols // 2
+f_transform_shifted_filtered[crow - 30:crow + 30, ccol - 30:ccol + 30] = 0
+filtered_image = np.fft.ifftshift(f_transform_shifted_filtered)
+filtered_image = np.fft.ifft2(filtered_image)
+filtered_image = np.abs(filtered_image)
+
+# Reason 4: Compression (Using only low frequencies)
+f_transform_compressed = f_transform_shifted.copy()
+f_transform_compressed[50:-50, 50:-50] = 0
+compressed_image = np.fft.ifftshift(f_transform_compressed)
+compressed_image = np.fft.ifft2(compressed_image)
+compressed_image = np.abs(compressed_image)
+
+# Reason 5: Edge Detection
+sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=5)
+sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5)
+edge_image = np.sqrt(sobelx*2 + sobely*2)
+
+# Reason 6: Pattern Recognition (Extracting certain frequencies)
+pattern_extraction = f_transform_shifted[rows//2-50:rows//2+50, cols//2-50:cols//2+50]
+
+# Display original and processed images
+plt.figure(figsize=(12, 8))
+
+plt.subplot(231), plt.imshow(img, cmap='gray')
+plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(232), plt.imshow(magnitude_spectrum, cmap='gray')
+plt.title('Frequency Analysis'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(233), plt.imshow(feature_extraction, cmap='gray')
+plt.title('Feature Extraction'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(234), plt.imshow(filtered_image, cmap='gray')
+plt.title('Noise Filtering'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(235), plt.imshow(compressed_image, cmap='gray')
+plt.title('Compression'), plt.xticks([]), plt.yticks([])
+
+plt.subplot(236), plt.imshow(edge_image, cmap='gray')
+plt.title('Edge Detection'), plt.xticks([]), plt.yticks([])
+
+plt.show()
