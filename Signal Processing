@@ -1,0 +1,30 @@
+% Generate a simple sinusoidal signal with noise
+Fs = 1000; % Sampling frequency
+t = 0:1/Fs:1; % Time vector
+f = 10; % Signal frequency
+A = 1; % Signal amplitude
+signal = A*sin(2*pi*f*t) + 0.5*randn(size(t)); % Sinusoidal signal with noise
+
+% Plot the generated signal
+figure;
+subplot(2,1,1);
+plot(t, signal);
+title('Original Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+% Preprocessing
+% Normalize the signal
+signal_normalized = (signal - mean(signal)) / std(signal);
+
+% Filter the signal (example: low-pass filter)
+cutoff_freq = 20; % Cutoff frequency for low-pass filter (in Hz)
+[b, a] = butter(4, cutoff_freq/(Fs/2), 'low'); % Design the filter
+signal_filtered = filtfilt(b, a, signal_normalized); % Apply the filter
+
+% Plot the preprocessed signal
+subplot(2,1,2);
+plot(t, signal_filtered);
+title('Preprocessed Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
